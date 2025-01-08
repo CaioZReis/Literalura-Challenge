@@ -7,7 +7,7 @@ import java.util.Scanner;
 
 public class Principal {
 
-    private Scanner leitura = new Scanner(System.in);
+    private final Scanner leitura = new Scanner(System.in);
     private final String ENDERECO = "https://gutendex.com/books/?search=";
     private ConsumoApi consumo = new ConsumoApi();
 
