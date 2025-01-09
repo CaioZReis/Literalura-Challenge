@@ -1,20 +1,43 @@
 package br.com.alura.literalura.model;
 
+
+import br.com.alura.literalura.dto.AutorResultado;
+import br.com.alura.literalura.dto.LivroResultados;
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "livros")
 public class Livro {
 
-    private Long apiId;
+    @Id
+    private Integer apiId;
+    @Column(unique = true)
     private String titulo;
+    @ManyToOne
     private Autor autor;
     private String lingua;
 
-    public Livro(Long apiId, String titulo, Autor autor, String lingua){
-        this.apiId = apiId;
-        this.titulo = titulo;
-        this.autor = autor;
-        this.lingua = lingua;
+    public Livro(){
+
     }
 
-    public Long getApiId() {
+    public Livro(LivroResultados livroResultados){
+
+        Autor autorNaoEncontrado = new Autor();
+        setApiId(livroResultados.id());
+        setTitulo(livroResultados.titulo());
+        setAutor(autorNaoEncontrado);
+        setLingua(livroResultados.linguas().getFirst());
+    }
+    public Livro(LivroResultados livroResultados, Autor autorResultado){
+
+        setApiId(livroResultados.id());
+        setTitulo(livroResultados.titulo());
+        setAutor(autorResultado);
+        setLingua(livroResultados.linguas().getFirst());
+    }
+
+    public Integer getApiId() {
         return apiId;
     }
 
@@ -30,7 +53,7 @@ public class Livro {
         return lingua;
     }
 
-    public void setApiId(Long apiId) {
+    public void setApiId(Integer apiId) {
         this.apiId = apiId;
     }
 
@@ -48,9 +71,8 @@ public class Livro {
 
     @Override
     public String toString() {
-        return "Livro Procurado:" +
-                "\nTítulo: " + titulo +
-                "\nAutor: " + autor +
-                "\nLingua: " + lingua;
+        return "Título: " + titulo +
+                " | Autor: " + autor.getNome() +
+                " | Lingua: " + lingua;
     }
 }
