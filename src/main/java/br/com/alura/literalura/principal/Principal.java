@@ -9,6 +9,7 @@ import br.com.alura.literalura.model.Livro;
 import br.com.alura.literalura.services.ConsumoApi;
 import br.com.alura.literalura.services.ConverteDado;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
@@ -43,11 +44,11 @@ public class Principal {
                     1 - Buscar e registrar livros pelo título (Gutendex API)
                     2 - Listar livros registrados
                     3 - Listar autores registrados
+                    4 - Listar autores vivos em um determinado ano
                     
                     0 - Sair
                     """);
             // Comentado para ser adicionado conforme avanço
-//            4 - Listar autores vivos em um determinado ano
 //            5 - Listar livros em um determinado idioma
 
             String opcao = leitura.nextLine();
@@ -69,10 +70,12 @@ public class Principal {
                     procurarAutoresPorAno();
                     System.out.println("Aperte enter para voltar ao menu...");
                     leitura.nextLine();
+                    leitura.nextLine();
                     break;
                 case "5":
                     procurarPorLingua();
                     System.out.println("Aperte enter para voltar ao menu...");
+                    leitura.nextLine();
                     leitura.nextLine();
                     break;
                 case "0" :
@@ -91,7 +94,7 @@ public class Principal {
             System.out.println("\nDigite o nome do livro ou aperte 0 para voltar");
             String livroProcurar = leitura.nextLine();
             if (livroProcurar.equals("0")){
-                exibeMenu();
+                return;
             }
             String enderecoTitulo = ENDERECO + livroProcurar.replace(" ", "+").toLowerCase();
             String livroJson = consumo.obterDados(enderecoTitulo);
@@ -195,7 +198,26 @@ public class Principal {
     }
 
     private void procurarAutoresPorAno(){
-
+        try {
+            int anoAtual = LocalDate.now().getYear();
+            System.out.println("Digite o ano:");
+            int anoProcura = (leitura.nextInt());
+            if (anoAtual < anoProcura){
+                System.out.println("Não dá para procurar no futuro...");
+                leitura.nextLine();
+            } else {
+                List<Autor> autoresVivos = repositorioAutor.encontrarAutorPorAno(anoProcura);
+                if (!autoresVivos.isEmpty()){
+                    System.out.printf("Autores vivo no período %s\n", anoProcura);
+                    autoresVivos.forEach(System.out::println);
+                } else {
+                    System.out.printf("Não foi encontrado autores vivos no período %s\n", anoProcura);
+                }
+            }
+        } catch (NumberFormatException e){
+            System.out.println("Digite apenas números, sem letras ou símbolos...");
+            leitura.nextLine();
+        }
     }
 
     private void procurarPorLingua(){

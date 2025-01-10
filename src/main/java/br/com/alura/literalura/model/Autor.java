@@ -3,6 +3,9 @@ package br.com.alura.literalura.model;
 import br.com.alura.literalura.dto.AutorResultado;
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "autores", uniqueConstraints = {@UniqueConstraint(columnNames = "nome")})
 public class Autor {
@@ -54,6 +57,6 @@ public class Autor {
     public String toString() {
         return "Nome: " + nome +
                 " | Ano de Nascimento: " + anoNascimento +
-                " | Ano de Falecimento" + anoFalecimento;
+                " | Ano de Falecimento: " + anoFalecimento;
     }
 }

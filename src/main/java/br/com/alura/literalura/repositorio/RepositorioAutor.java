@@ -10,9 +10,6 @@ import java.util.Optional;
 public interface RepositorioAutor extends JpaRepository<Autor, Long> {
     Optional<Autor> findAutorByNome(String nome);
 
-//    @Query("SELECT a FROM autores a")
-//    List<Autor> findAllAuthors(String nome);
-//
-//    @Query("SELECT a FROM Author a WHERE :year BETWEEN a.birthYear AND a.deathYear ORDER BY a.birthYear")
-//    List<Autor> findLivingAuthorsByYear(Integer year);
+    @Query("SELECT a FROM Autor a WHERE :ano BETWEEN a.anoNascimento AND a.anoFalecimento ORDER BY a.anoNascimento")
+    List<Autor> encontrarAutorPorAno(Integer ano);
 }
