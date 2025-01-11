@@ -16,10 +16,10 @@ public interface RepositorioLivro extends JpaRepository<Livro, Integer> {
     @Query("SELECT l FROM Livro l ORDER BY l.titulo")
     List<Livro> findLivros();
 
-//    @Query("SELECT DISTINCT l.lingua FROM Livro l ORDER BY l.lingua")
-//    List<String> findDiferentesLinguas();
+    @Query("SELECT DISTINCT l.lingua FROM Livro l ORDER BY l.lingua")
+    List<String> findDiferentesLinguas();
 
-//    @Query("SELECT l FROM livros l WHERE l.lingua ILIKE :lingua ORDER BY l.titulo")
-//    List<Livro> findBooksByLanguage(String lingua);
+    @Query("SELECT l FROM Livro l WHERE l.lingua ILIKE :lingua ORDER BY l.titulo")
+    List<Livro> findLivrosByLingua(String lingua);
 
 }

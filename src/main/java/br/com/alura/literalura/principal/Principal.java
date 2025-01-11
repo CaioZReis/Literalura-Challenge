@@ -45,12 +45,11 @@ public class Principal {
                     2 - Listar livros registrados
                     3 - Listar autores registrados
                     4 - Listar autores vivos em um determinado ano
+                    5 - Listar livros em um determinado idioma
                     
                     0 - Sair
                     Escolha a opção desejada:""");
-            // Comentado para ser adicionado conforme avanço
-//            5 - Listar livros em um determinado idioma
-
+            
             String opcao = leitura.nextLine();
 
             switch (opcao) {
@@ -230,7 +229,37 @@ public class Principal {
     }
 
     private void procurarPorLingua(){
+        List<String> linguasTabela = repositorioLivro.findDiferentesLinguas();
 
+        if (linguasTabela.isEmpty()) {
+            System.out.println("Nenhuma língua encontrada no banco de dados.");
+        } else {
+            System.out.println("\nLínguas disponíveis:\n");
+            for (String lingua : linguasTabela) {
+                String linguaTransformada = switch (lingua) {
+                    case "pt" -> "Português";
+                    case "en" -> "Inglês";
+                    case "es" -> "Espanhol";
+                    default -> "Lingua não mapeada";
+                };
+                System.out.println(lingua + " - " + linguaTransformada);
+            }
+            System.out.println("Escolha a idioma desejado: ");
+            String linguaProcurar = leitura.nextLine();
+            String linguaTransformada = switch (linguaProcurar) {
+                case "pt" -> "Português";
+                case "en" -> "Inglês";
+                case "es" -> "Espanhol";
+                default -> "'Não mapeado'";
+            };
+            List<Livro> livros = repositorioLivro.findLivrosByLingua(linguaProcurar);
+
+            if (livros.isEmpty()) {
+                System.out.println("Nenhum livro encontrado para o idioma: " + linguaTransformada);
+            } else {
+                System.out.println("Livros encontrados no idioma " + linguaTransformada + ":");
+                livros.forEach(System.out::println);
+            }
+        }
     }
-
 }
