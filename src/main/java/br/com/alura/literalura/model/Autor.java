@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
+
 @Entity
 @Table(name = "autores", uniqueConstraints = {@UniqueConstraint(columnNames = "nome")})
 public class Autor {
@@ -14,6 +15,8 @@ public class Autor {
     private String nome;
     private int anoNascimento;
     private int anoFalecimento;
+    @OneToMany(mappedBy = "autor", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<Livro> livros = new ArrayList<>();
 
     public Autor(){
 
@@ -51,6 +54,14 @@ public class Autor {
 
     public void setAnoFalecimento(int anoFalecimento) {
         this.anoFalecimento = anoFalecimento;
+    }
+
+    public List<Livro> getLivros() {
+        return livros;
+    }
+
+    public void setLivros(Livro livros) {
+        this.livros.add(livros);
     }
 
     @Override
