@@ -15,9 +15,9 @@ public record LivroResultados(
         ) {
     @Override
     public String toString() {
-        return  "\nId: " + id +
-                "\nTitulo: " + titulo +
-                "\nAutor: " + autores.getFirst() +
-                "\nLingua: " + linguas.getFirst();
+        return  "\nTitulo: " + titulo +
+                "\nAutor: " + (autores.isEmpty() ? autores: autores.getFirst().nome()) +
+                "\nLingua: " + (linguas.isEmpty() ? linguas: linguas.getFirst()) +
+                "\nNúmero de Downloads: " + numeroDowload;
     }
 }

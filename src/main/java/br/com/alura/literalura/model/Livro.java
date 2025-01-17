@@ -66,12 +66,7 @@ public class Livro {
         if (autor.getNome().equals("Autor não encontrado")){
             this.autor.setAnoNascimento(0);
             this.autor.setAnoFalecimento(0);
-        } else {
-            this.autor.setAnoNascimento(autor.getAnoNascimento());
-            this.autor.setAnoFalecimento(autor.getAnoFalecimento());
         }
-
-
         this.autor = autor;
     }
 

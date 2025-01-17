@@ -8,9 +8,9 @@ import br.com.alura.literalura.repositorio.RepositorioAutor;
 import br.com.alura.literalura.repositorio.RepositorioLivro;
 import br.com.alura.literalura.services.ConsumoApi;
 import br.com.alura.literalura.services.ConverteDado;
-
 import java.time.LocalDate;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.stream.Collectors;
@@ -21,7 +21,7 @@ public class Principal {
     private RepositorioLivro repositorioLivro;
     private final Scanner leitura = new Scanner(System.in);
     private final String ENDERECO = "https://gutendex.com/books/?search=";
-    private ConsumoApi consumo = new ConsumoApi();
+    private final ConsumoApi consumo = new ConsumoApi();
     private final ConverteDado conversor = new ConverteDado();
 
 
@@ -30,7 +30,7 @@ public class Principal {
         this.repositorioLivro = repositorioLivro;
     }
 
-    public void exibeMenu(){
+    public void exibeMenu() {
 
         System.out.println("""
                 
@@ -38,7 +38,7 @@ public class Principal {
                 Uma API que utiliza o GUTENDEX para procurar livro e guardá-los em um banco de dados
                 """);
 
-        while (true){
+        while (true) {
             System.out.println("""
                                     Menu Principal
                     1 - Buscar e registrar livros pelo título (Gutendex API)
@@ -49,11 +49,12 @@ public class Principal {
                     
                     0 - Sair
                     Escolha a opção desejada:""");
-            
+
             String opcao = leitura.nextLine();
 
             switch (opcao) {
-                case "1" : procurarApi();
+                case "1":
+                    procurarApi();
                     break;
                 case "2":
                     procurarLivro();
@@ -75,7 +76,7 @@ public class Principal {
                     System.out.println("Aperte enter para voltar ao menu...");
                     leitura.nextLine();
                     break;
-                case "0" :
+                case "0":
                     System.out.println("\nAplicação feita por Caio Zanchetta Reis\nObrigado por usar esta aplicação!\n\n");
                     System.exit(0);
                     break;
@@ -90,7 +91,7 @@ public class Principal {
 
             System.out.println("\nDigite o nome do livro ou aperte 0 para voltar");
             String livroProcurar = leitura.nextLine();
-            if (livroProcurar.equals("0")){
+            if (livroProcurar.equals("0")) {
                 return;
             }
             String enderecoTitulo = ENDERECO + livroProcurar.replace(" ", "+").toLowerCase();
@@ -99,35 +100,65 @@ public class Principal {
             RespostaDto livroProcurado = conversor.obterDados(livroJson, RespostaDto.class);
 
 
-            if (livroProcurado.quantidade() == 0){
+            if (livroProcurado.quantidade() == 0) {
                 System.out.println("Livro não encontrado!!");
             } else if (livroProcurado.quantidade() == 1) {
                 LivroResultados livro = livroProcurado.livroResultadosApi().getFirst();
                 verificarLivro(livro);
-            } else if (livroProcurado.quantidade() > 1){
-                System.out.printf("Foram encontrados %s livros por favor seja mais específico no título", livroProcurado.quantidade());
-                //Fazer uma chamada recursiva para adicionar somente 1 livro
+            } else if (livroProcurado.quantidade() > 1) {
+                boolean encontrarId = true;
+                while (encontrarId) {
+                    try {
+                        System.out.printf("\nForam encontrados %s livros. Por favor, insira o ID do livro que deseja adicionar:%n", livroProcurado.quantidade());
+
+                        livroProcurado.livroResultadosApi().forEach(l -> {
+                            System.out.printf("Título: %s | Id: %d | Autor: %s%n", l.titulo(), l.id(), l.autores().isEmpty() ? l.autores() : l.autores().getFirst().nome());
+                        });
+
+                        System.out.println("\nDigite o ID do livro desejado ou 0 para voltar: ");
+                        String idEscolhido = leitura.nextLine();
+                        if (idEscolhido.equals("0")) {
+                            encontrarId = false;
+                            return;
+                        }
+                        LivroResultados livroEscolhido = livroProcurado.livroResultadosApi()
+                                .stream()
+                                .filter(l -> l.id().equals(Integer.parseInt(idEscolhido)))
+                                .findFirst()
+                                .orElse(null);
+
+                        if (livroEscolhido != null) {
+                            verificarLivro(livroEscolhido);
+                        } else {
+                            System.out.println("ID inválido! Tente novamente.");
+                        }
+                    } catch (NumberFormatException e) {
+                        System.out.println("Digite somente número...");
+                    } catch (NoSuchElementException e){
+                        System.out.println("Autor vazio ou inexistente");
+                    }
+                }
             }
         }
     }
 
-    private void verificarLivro(LivroResultados livroEncontrado){
+    private void verificarLivro(LivroResultados livroEncontrado) {
         System.out.println(livroEncontrado + "\nEste livro será adicionado ao banco de dados, o livro está correto? (S/N)");
         String verificadorLivro = leitura.nextLine().toLowerCase();
-        if(verificadorLivro.equals("s")){
+        if (verificadorLivro.equals("s")) {
             registrarLivro(livroEncontrado);
-        } else if (verificadorLivro.equals("n")){
-            procurarApi();
+        } else if (verificadorLivro.equals("n")) {
+            return;
         } else {
             System.out.println("Opção inválida");
             verificarLivro(livroEncontrado);
         }
     }
 
-    private void registrarLivro(LivroResultados livroEncontrado){
-        if(!estaRegistrado(livroEncontrado)){
+    private void registrarLivro(LivroResultados livroEncontrado) {
+        if (!estaRegistrado(livroEncontrado)) {
             Livro novoLivro;
-            if (!livroEncontrado.autores().getFirst().nome().equals("Autor não encontrado")){
+            if (!livroEncontrado.autores().getFirst().nome().equals("Autor não encontrado")) {
                 Optional<Autor> autorBanco = repositorioAutor.findAutorByNome(livroEncontrado.autores().getFirst().nome());
                 if (autorBanco.isPresent()) {
                     novoLivro = new Livro(livroEncontrado, autorBanco.get());
@@ -145,10 +176,10 @@ public class Principal {
             } else {
                 System.out.println("Livro está sem Autor quer adicionar mesmo assim? (S/N)");
                 String verificadorAutor = leitura.nextLine();
-                if(verificadorAutor.equals("s")){
+                if (verificadorAutor.equals("s")) {
                     novoLivro = new Livro(livroEncontrado);
                     repositorioLivro.save(novoLivro);
-                } else if (verificadorAutor.equals("n")){
+                } else if (verificadorAutor.equals("n")) {
                     procurarApi();
                 } else {
                     System.out.println("Opção inválida");
@@ -160,20 +191,20 @@ public class Principal {
         }
     }
 
-    private boolean estaRegistrado(LivroResultados livroEncontrado){
+    private boolean estaRegistrado(LivroResultados livroEncontrado) {
         Optional<Livro> livroSalvo = repositorioLivro.findBookByTitulo(livroEncontrado.titulo());
 
-        if (livroSalvo.isPresent()){
+        if (livroSalvo.isPresent()) {
             return true;
         } else {
             return false;
         }
     }
 
-    private void procurarLivro(){
+    private void procurarLivro() {
         List<Livro> livrosTabela = repositorioLivro.findLivros();
 
-        if(livrosTabela.isEmpty()) {
+        if (livrosTabela.isEmpty()) {
             System.out.println("Nenhum livro registrado");
         } else {
             System.out.println("Livro(s) Procurado(s)");
@@ -211,24 +242,24 @@ public class Principal {
             int anoAtual = LocalDate.now().getYear();
             System.out.println("Digite o ano:");
             String anoProcura = leitura.nextLine();
-            if (anoAtual < Integer.parseInt(anoProcura)){
+            if (anoAtual < Integer.parseInt(anoProcura)) {
                 System.out.println("Não dá para procurar no futuro...\nTente outra data");
                 leitura.nextLine();
             } else {
                 List<Autor> autoresVivos = repositorioAutor.encontrarAutorPorAno(Integer.parseInt(anoProcura));
-                if (!autoresVivos.isEmpty()){
+                if (!autoresVivos.isEmpty()) {
                     System.out.printf("Autores vivo no ano de %s\n", anoProcura);
                     autoresVivos.forEach(System.out::println);
                 } else {
                     System.out.printf("Não foi encontrado autores vivos no ano de %s\n", anoProcura);
                 }
             }
-        } catch (NumberFormatException e){
+        } catch (NumberFormatException e) {
             System.out.println("Digite apenas números, sem letras ou símbolos...");
         }
     }
 
-    private void procurarPorLingua(){
+    private void procurarPorLingua() {
         List<String> linguasTabela = repositorioLivro.findDiferentesLinguas();
 
         if (linguasTabela.isEmpty()) {
@@ -240,6 +271,10 @@ public class Principal {
                     case "pt" -> "Português";
                     case "en" -> "Inglês";
                     case "es" -> "Espanhol";
+                    case "ar" -> "Árabe";
+                    case "de" -> "Alemão";
+                    case "fr" -> "Francês";
+                    case "it" -> "Italiano";
                     default -> "Lingua não mapeada";
                 };
                 System.out.println(lingua + " - " + linguaTransformada);
@@ -250,14 +285,18 @@ public class Principal {
                 case "pt" -> "Português";
                 case "en" -> "Inglês";
                 case "es" -> "Espanhol";
+                case "ar" -> "Árabe";
+                case "de" -> "Alemão";
+                case "fr" -> "Francês";
+                case "it" -> "Italiano";
                 default -> "'Não mapeado'";
             };
             List<Livro> livros = repositorioLivro.findLivrosByLingua(linguaProcurar);
 
             if (livros.isEmpty()) {
-                System.out.println("Nenhum livro encontrado para o idioma: " + linguaTransformada);
+                System.out.println("\nNenhum livro encontrado para o idioma: " + linguaTransformada);
             } else {
-                System.out.println("Livros encontrados no idioma " + linguaTransformada + ":");
+                System.out.println("\nLivros encontrados no idioma " + linguaTransformada + ":");
                 livros.forEach(System.out::println);
             }
         }
